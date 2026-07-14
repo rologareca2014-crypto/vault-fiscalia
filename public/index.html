@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaultFiscalia - Fiscalía Departamental de Santa Cruz</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo_fiscalia.png">
+</head>
+<body class="light-theme">
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app" class="app-container">
+        
+        <!-- ========================================== -->
+        <!-- SCREEN 1: AUTHENTICATION (Login / Register / 2FA) -->
+        <!-- ========================================== -->
+        <section id="auth-screen" class="auth-screen">
+            <div class="auth-backdrop-decoration"></div>
+            <div class="auth-card glass-panel">
+                
+                <!-- Institutional Header -->
+                <div class="auth-header" style="text-align: center; margin-bottom: 1.5rem;">
+                    <div style="display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin-bottom: 0.5rem; width: 100%;">
+                        <img src="logo_fiscalia.png" alt="VaultFiscalia Logo" style="height: 64px; width: 64px; object-fit: contain; display: block; margin-bottom: 4px;">
+                        <span style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary);">
+                            Vault<span style="color: var(--color-primary);">Fiscalia</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- FORM: Login -->
+                <form id="login-form" class="auth-form active">
+                    <h3>Iniciar Sesión</h3>
+                    
+                    <div class="input-group">
+                        <label for="login-email"><i class="fa-regular fa-envelope"></i> Correo Electrónico MP</label>
+                        <input type="email" id="login-email" required placeholder="usuario@fiscalia.gob.bo">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="login-password"><i class="fa-solid fa-key"></i> Contraseña Maestra</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="login-password" required placeholder="••••••••">
+                            <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('login-password')">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 4px; margin-bottom: 12px;">
+                            <span></span>
+                            <a href="#" id="request-hint-link" class="form-link" style="font-size: 11px; font-weight: 500; text-decoration: none;">¿Olvidó su contraseña? Obtener pista</a>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <span>Ingresar</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    </button>
+                    
+                    <p class="auth-switch-text register-invite-notice">
+                        ¿Recibió una invitación? <a href="#" id="to-register-btn" class="form-link">Registrarse</a>
+                    </p>
+                </form>
+
+                <!-- FORM: Register (Strict Invitation-only) -->
+                <form id="register-form" class="auth-form">
+
+                    
+                    <h3 style="font-size: 1.4rem; text-align: center; margin-bottom: 0.5rem;">Asignar Contraseña Maestra</h3>
+                    <div id="register-flow-desc" style="text-align: center; margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-secondary);"></div>
+                    <div class="register-email-banner" style="text-align: center; margin-bottom: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); background: rgba(11, 94, 40, 0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(11, 94, 40, 0.1);">
+                        <i class="fa-regular fa-envelope" style="color: #0b5e28; margin-right: 4px;"></i> Registro para: <strong id="register-email-display-text" style="color: var(--text-primary);">...</strong>
+                        <input type="hidden" id="register-email">
+                    </div>
+                    
+                    <!-- Password Mode Selector Tabs -->
+                    <div class="password-selection-tabs">
+                        <button type="button" class="tab-btn active" id="tab-custom-reg" onclick="selectPasswordMode('reg', 'custom')">Personalizada</button>
+                        <button type="button" class="tab-btn" id="tab-suggested-reg" onclick="selectPasswordMode('reg', 'suggested')">Contraseña Sugerida</button>
+                    </div>
+
+                    <!-- Mode: Suggested -->
+                    <div id="suggested-box-reg" class="password-mode-box hidden">
+                        <label><i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Contraseña Sugerida de Alta Seguridad</label>
+                        <div class="suggested-preview-box">
+                            <span class="suggested-pw-text" id="suggested-pw-reg">cargando...</span>
+                            <button type="button" class="btn-icon-copy" title="Copiar Contraseña" onclick="copySuggestedPassword('reg')">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                        <p class="suggested-help-text" style="margin-bottom:12px;"><i class="fa-solid fa-circle-info"></i> Copie esta contraseña y guárdela en un lugar seguro.</p>
+                    </div>
+
+                    <!-- Mode: Custom -->
+                    <div id="custom-box-reg" class="password-mode-box">
+                        <div class="input-group">
+                            <label for="register-password"><i class="fa-solid fa-key"></i> Contraseña Maestra (requerido)</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="register-password" placeholder="Escriba su contraseña" minlength="8">
+                                <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('register-password')">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="strength-meter-container">
+                                <div class="strength-meter-bar-wrapper">
+                                    <div id="register-password-strength-bar" class="strength-meter-bar"></div>
+                                </div>
+                                <span id="register-password-strength-text" class="strength-meter-text">Contraseña vacía</span>
+                            </div>
+                            
+                            <div class="kaspersky-checklist" style="justify-content: space-between; margin-top: 8px;">
+                                <div class="checklist-item" id="reg-req-upper" title="Mayúsculas [A-Z]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[A-Z]</span>
+                                </div>
+                                <div class="checklist-item" id="reg-req-lower" title="Minúsculas [a-z]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[a-z]</span>
+                                </div>
+                                <div class="checklist-item" id="reg-req-digit" title="Números [0-9]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[0-9]</span>
+                                </div>
+                                <div class="checklist-item" id="reg-req-special" title="Símbolos [!@#]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[!@#]</span>
+                                </div>
+                                <div class="checklist-item" id="reg-req-length" title="Mínimo 8 caracteres [>=8]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[>=8]</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group" style="margin-top: 15px;">
+                            <label for="register-confirm-password"><i class="fa-solid fa-lock"></i> Confirmar Contraseña Maestra (requerido)</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="register-confirm-password" placeholder="Repita la contraseña" minlength="8">
+                                <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('register-confirm-password')">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-hint"><i class="fa-solid fa-lightbulb"></i> Pista de Contraseña (Opcional)</label>
+                        <input type="text" id="register-hint" maxlength="50" placeholder="Ej: Mi color favorito">
+                    </div>
+
+                    
+                    <!-- Hidden token holder -->
+                    <input type="hidden" id="register-invite-token">
+                    
+                    <button type="submit" class="btn btn-success btn-block" style="background-color: var(--color-primary); border-color: var(--color-primary);">
+                        <span>Crear cuenta</span> <i class="fa-solid fa-user-plus"></i>
+                    </button>
+                    
+                    <p class="auth-switch-text" style="margin-top: 1.5rem; text-align: center; font-size: 12px;">
+                        ¿Ya tiene cuenta? <a href="#" id="to-login-btn" class="form-link">Iniciar Sesión</a>
+                    </p>
+                </form>
+
+                <!-- FORM: Reset Password (via admin token) -->
+                <form id="reset-password-form" class="auth-form">
+                    <h3 style="font-size: 1.4rem; text-align: center; margin-bottom: 0.75rem;">Restablecer Contraseña Maestra</h3>
+                    <div class="register-email-banner" style="text-align: center; margin-bottom: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); background: rgba(11, 94, 40, 0.05); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(11, 94, 40, 0.1);">
+                        <i class="fa-regular fa-envelope" style="color: #0b5e28; margin-right: 4px;"></i> Cuenta: <strong id="reset-email-display-text" style="color: var(--text-primary);">...</strong>
+                        <input type="hidden" id="reset-email">
+                    </div>
+
+                    <!-- Password Mode Selector Tabs -->
+                    <div class="password-selection-tabs">
+                        <button type="button" class="tab-btn active" id="tab-custom-reset" onclick="selectPasswordMode('reset', 'custom')">Personalizada</button>
+                        <button type="button" class="tab-btn" id="tab-suggested-reset" onclick="selectPasswordMode('reset', 'suggested')">Sugerida</button>
+                    </div>
+
+                    <!-- Mode: Suggested -->
+                    <div id="suggested-box-reset" class="password-mode-box hidden">
+                        <label><i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Contraseña Sugerida de Alta Seguridad</label>
+                        <div class="suggested-preview-box">
+                            <span class="suggested-pw-text" id="suggested-pw-reset">cargando...</span>
+                            <button type="button" class="btn-icon-copy" title="Copiar Contraseña" onclick="copySuggestedPassword('reset')">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mode: Custom -->
+                    <div id="custom-box-reset" class="password-mode-box">
+                        <div class="input-group">
+                            <label for="reset-password"><i class="fa-solid fa-lock"></i> Nueva Contraseña Maestra</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="reset-password" placeholder="Mínimo 8 caracteres" minlength="8" required>
+                                <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('reset-password')">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="strength-meter-container">
+                                <div class="strength-meter-bar-wrapper">
+                                    <div id="reset-password-strength-bar" class="strength-meter-bar"></div>
+                                </div>
+                                <span id="reset-password-strength-text" class="strength-meter-text">Contraseña vacía</span>
+                            </div>
+                            <div class="kaspersky-checklist" style="justify-content: space-between; margin-top: 8px;">
+                                <div class="checklist-item" id="reset-req-upper" title="Mayúsculas [A-Z]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[A-Z]</span>
+                                </div>
+                                <div class="checklist-item" id="reset-req-lower" title="Minúsculas [a-z]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[a-z]</span>
+                                </div>
+                                <div class="checklist-item" id="reset-req-digit" title="Números [0-9]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[0-9]</span>
+                                </div>
+                                <div class="checklist-item" id="reset-req-special" title="Símbolos [!@#]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[!@#]</span>
+                                </div>
+                                <div class="checklist-item" id="reset-req-length" title="Mínimo 8 caracteres [>=8]">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>[>=8]</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="reset-token-holder">
+                    
+                    <button type="submit" class="btn btn-primary btn-block" style="background-color: var(--color-primary); border-color: var(--color-primary); margin-top: 1rem;">
+                        <span>Restablecer Contraseña</span> <i class="fa-solid fa-circle-check"></i>
+                    </button>
+                    
+                    <p class="auth-switch-text" style="margin-top: 1.5rem; text-align: center; font-size: 12px;">
+                        ¿Recuerda su clave? <a href="#" onclick="showForm('login-form')" class="form-link">Iniciar Sesión</a>
+                    </p>
+                </form>
+
+                <!-- FORM: 2FA Verification -->
+                <form id="totp-form" class="auth-form">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 0.5rem;">
+                        <svg viewBox="0 0 512 512" width="28" height="28" style="display:block;">
+                            <path fill="#1A73E8" d="M440,255.99997v0.00006C440,273.12085,426.12085,287,409.00003,287H302l-46-93.01001l49.6507-85.9951c8.56021-14.82629,27.51834-19.9065,42.34518-11.34724l0.00586,0.0034c14.82776,8.55979,19.90875,27.51928,11.34857,42.34682L309.70001,225h99.30002C426.12085,225,440,238.87917,440,255.99997z"/>
+                            <path fill="#EA4335" d="M348.00174,415.34897l-0.00586,0.00339c-14.82684,8.55927-33.78497,3.47903-42.34518-11.34723L256,318.01001l-49.65065,85.99509c-8.5602,14.82629-27.51834,19.90652-42.34517,11.34729l-0.00591-0.00342c-14.82777-8.55978-19.90875-27.51929-11.34859-42.34683L202.29999,287L256,285l53.70001,2l49.6503,86.00214C367.91049,387.82968,362.8295,406.78918,348.00174,415.34897z"/>
+                            <path fill="#FBBC04" d="M256,193.98999L242,232l-39.70001-7l-49.6503-86.00212c-8.56017-14.82755-3.47919-33.78705,11.34859-42.34684l0.00591-0.00341c14.82683-8.55925,33.78497-3.47903,42.34517,11.34726L256,193.98999z"/>
+                            <path fill="#34A853" d="M248,225l-36,62H102.99997C85.87916,287,72,273.12085,72,256.00003v-0.00006C72,238.87917,85.87916,225,102.99997,225H248z"/>
+                            <polygon fill="#185DB7" points="309.70001,287 202.29999,287 256,193.98999 "/>
+                        </svg>
+                        <h3 style="margin: 0; font-size: 1.3rem;">Doble Factor (2FA)</h3>
+                    </div>
+                    <p class="form-description text-center" style="font-size: 0.85rem; margin-bottom: 1rem;">Código de 6 dígitos de Google Authenticator.</p>
+                    
+                    <div class="input-group">
+                        <input type="text" id="totp-code" class="totp-input-box" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required placeholder="000000" style="font-size: 24px; letter-spacing: 6px;">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <span>Verificar</span> <i class="fa-solid fa-shield-check"></i>
+                    </button>
+                    
+                    <button type="button" id="totp-cancel-btn" class="btn btn-outline btn-block mt-2">
+                        Cancelar
+                    </button>
+                </form>
+
+                <!-- FORM: Mandatory 2FA Setup on Login -->
+                <form id="totp-setup-form" class="auth-form">
+                    <div class="authenticator-header-logo">
+                        <svg viewBox="0 0 512 512" width="64" height="64">
+                            <path fill="#1A73E8" d="M440,255.99997v0.00006C440,273.12085,426.12085,287,409.00003,287H302l-46-93.01001l49.6507-85.9951c8.56021-14.82629,27.51834-19.9065,42.34518-11.34724l0.00586,0.0034c14.82776,8.55979,19.90875,27.51928,11.34857,42.34682L309.70001,225h99.30002C426.12085,225,440,238.87917,440,255.99997z"/>
+                            <path fill="#EA4335" d="M348.00174,415.34897l-0.00586,0.00339c-14.82684,8.55927-33.78497,3.47903-42.34518-11.34723L256,318.01001l-49.65065,85.99509c-8.5602,14.82629-27.51834,19.90652-42.34517,11.34729l-0.00591-0.00342c-14.82777-8.55978-19.90875-27.51929-11.34859-42.34683L202.29999,287L256,285l53.70001,2l49.6503,86.00214C367.91049,387.82968,362.8295,406.78918,348.00174,415.34897z"/>
+                            <path fill="#FBBC04" d="M256,193.98999L242,232l-39.70001-7l-49.6503-86.00212c-8.56017-14.82755-3.47919-33.78705,11.34859-42.34684l0.00591-0.00341c14.82683-8.55925,33.78497-3.47903,42.34517,11.34726L256,193.98999z"/>
+                            <path fill="#34A853" d="M248,225l-36,62H102.99997C85.87916,287,72,273.12085,72,256.00003v-0.00006C72,238.87917,85.87916,225,102.99997,225H248z"/>
+                            <polygon fill="#185DB7" points="309.70001,287 202.29999,287 256,193.98999 "/>
+                        </svg>
+                    </div>
+                    <h3>Configurar Doble Factor</h3>
+                    <p class="form-description">Para cumplir las políticas de seguridad del Ministerio Público, debe vincular la aplicación <strong>Google Authenticator</strong> a su cuenta antes de ingresar.</p>
+                    
+                    <p class="box-instructions text-xs mb-2">1. Abra la app <strong>Google Authenticator</strong> en su celular y escanee el código QR:</p>
+                    <div class="qr-code-wrapper mb-2">
+                        <img id="login-2fa-qr-img" src="" alt="Código QR 2FA" style="width:150px; height:150px; display:block; margin:0 auto;">
+                    </div>
+                    <div class="secret-text-box mb-2" style="font-size: 11px;">
+                        <span>Clave Secreta:</span>
+                        <code id="login-2fa-secret-text" style="font-size: 11px;">cargando...</code>
+                    </div>
+                    
+                    <p class="box-instructions text-xs mt-3 mb-2">2. Ingrese el código temporal generado en su aplicación para activar:</p>
+                    <div class="input-group">
+                        <input type="text" id="login-totp-setup-code" class="totp-input-box" maxlength="6" required placeholder="000000">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-block">
+                        <span>Activar e Ingresar</span> <i class="fa-solid fa-circle-check"></i>
+                    </button>
+                    
+                    <button type="button" id="totp-setup-cancel-btn" class="btn btn-outline btn-block mt-2">
+                        Cancelar
+                    </button>
+                </form>
+
+            </div>
+            <div class="institutional-footer-tag">
+                <p>Fiscalía Departamental de Santa Cruz © 2026 - Departamento de Tecnología y Comunicaciones</p>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- SCREEN 2: FORCE PASSWORD CHANGE SCREEN -->
+        <!-- ========================================== -->
+        <section id="force-change-screen" class="auth-screen hidden">
+            <div class="auth-backdrop-decoration"></div>
+            <div class="auth-card glass-panel">
+                <div class="auth-header">
+                    <div class="fa-icon-accent text-warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <h3>Cambio Obligatorio de Contraseña</h3>
+                    <p class="form-description text-center">Su contraseña maestra fue restablecida por un ticket de soporte. Ingrese una contraseña maestra nueva y segura para activar su cuenta.</p>
+                    <div class="divider"></div>
+                </div>
+
+                <form id="force-change-form">
+                    <!-- Password Mode Selector Tabs -->
+                    <div class="password-selection-tabs">
+                        <button type="button" class="tab-btn active" id="tab-custom-force" onclick="selectPasswordMode('force', 'custom')">Personalizada</button>
+                        <button type="button" class="tab-btn" id="tab-suggested-force" onclick="selectPasswordMode('force', 'suggested')">Contraseña Sugerida</button>
+                    </div>
+
+                    <!-- Mode: Suggested -->
+                    <div id="suggested-box-force" class="password-mode-box hidden">
+                        <label><i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Contraseña Sugerida de Alta Seguridad</label>
+                        <div class="suggested-preview-box">
+                            <span class="suggested-pw-text" id="suggested-pw-force">cargando...</span>
+                            <button type="button" class="btn-icon-copy" title="Copiar Contraseña" onclick="copySuggestedPassword('force')">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                        <p class="suggested-help-text" style="margin-bottom:12px;"><i class="fa-solid fa-circle-info"></i> Copie esta contraseña y guárdela en un lugar seguro.</p>
+                    </div>
+
+                    <!-- Mode: Custom -->
+                    <div id="custom-box-force" class="password-mode-box">
+                        <div class="input-group">
+                            <label for="force-new-password"><i class="fa-solid fa-key"></i> Nueva Contraseña Maestra</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="force-new-password" placeholder="Mínimo 8 caracteres" minlength="8">
+                                <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('force-new-password')">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="strength-meter-container">
+                                <div class="strength-meter-bar-wrapper">
+                                    <div id="force-password-strength-bar" class="strength-meter-bar"></div>
+                                </div>
+                                <span id="force-password-strength-text" class="strength-meter-text">Contraseña vacía</span>
+                            </div>
+                            <div class="kaspersky-checklist">
+                                <div class="checklist-item" id="force-req-length">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Mín. 8 caracteres</span>
+                                </div>
+                                <div class="checklist-item" id="force-req-upper">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Mayúsculas [A-Z]</span>
+                                </div>
+                                <div class="checklist-item" id="force-req-lower">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Minúsculas [a-z]</span>
+                                </div>
+                                <div class="checklist-item" id="force-req-digit">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Números [0-9]</span>
+                                </div>
+                                <div class="checklist-item" id="force-req-special">
+                                    <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Símbolos [!@#]</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-group" style="margin-top: 15px;">
+                            <label for="force-confirm-password"><i class="fa-solid fa-lock"></i> Confirmar Contraseña</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="force-confirm-password" placeholder="Repita la contraseña" minlength="8">
+                                <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('force-confirm-password')">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-block">
+                        <span>Actualizar e Ingresar</span> <i class="fa-solid fa-check"></i>
+                    </button>
+                    
+                    <button type="button" onclick="logout()" class="btn btn-outline btn-block mt-2">
+                        Cancelar y Salir
+                    </button>
+                </form>
+            </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- SCREEN 3: DASHBOARD (MAIN SYSTEM) -->
+        <!-- ========================================== -->
+        <section id="dashboard-screen" class="dashboard-screen hidden">
+            
+            <!-- SIDEBAR -->
+            <aside class="sidebar">
+                <!-- Branded Header -->
+                <div class="sidebar-header">
+                    <div class="logo-box" style="background: transparent; box-shadow: none; display: flex; align-items: center; justify-content: center;">
+                        <img src="logo_fiscalia.png" alt="VaultFiscalia Logo" style="height: 38px; width: 38px; object-fit: contain;">
+                    </div>
+                    <div class="header-text">
+                        <h3>VaultFiscalia</h3>
+                        <p>Santa Cruz - Bóveda</p>
+                    </div>
+                </div>
+
+                <!-- User Badge -->
+                <div class="user-badge">
+                    <div class="user-avatar">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div class="user-info">
+                        <span id="user-email-display" class="user-email">cargando...</span>
+                        <span id="user-role-display" class="user-role">Funcionario</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="sidebar-menu">
+                    <ul>
+                        <li class="menu-item active" data-target="vault-section">
+                            <a href="#"><i class="fa-solid fa-vault"></i> <span>Mis Credenciales</span></a>
+                        </li>
+                        <li class="menu-item" data-target="favorites-section">
+                            <a href="#"><i class="fa-solid fa-star"></i> <span>Favoritos</span></a>
+                        </li>
+                        <li class="menu-item admin-only hidden" data-target="admin-users-section">
+                            <a href="#"><i class="fa-solid fa-users-gear"></i> <span>Gestión de Personal</span></a>
+                        </li>
+                        <li class="menu-item admin-only hidden" data-target="admin-logs-section">
+                            <a href="#"><i class="fa-solid fa-clock-rotate-left"></i> <span>Logs de Auditoría</span></a>
+                        </li>
+                        <li class="menu-item" data-target="settings-section">
+                            <a href="#"><i class="fa-solid fa-gears"></i> <span>Configuración</span></a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Sidebar Footer/Logout -->
+                <div class="sidebar-footer">
+                    <button id="theme-toggle-btn" class="btn-theme-toggle mb-2" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0.6rem; font-size: 13px; font-weight: 500; margin-bottom: 0.5rem;">
+                        <i class="fa-solid fa-sun icon-sun hidden"></i>
+                        <i class="fa-solid fa-moon icon-moon"></i>
+                        <span id="theme-btn-text">Modo Claro</span>
+                    </button>
+                    <button onclick="logout()" class="btn-logout">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Cerrar Sesión</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main class="main-content">
+                
+                <!-- 1. SECTION: VAULT CREDENTIALS -->
+                <section id="vault-section" class="content-section active">
+                    <div class="section-header">
+                        <div>
+                            <h2>Mis Credenciales</h2>
+                            <p class="section-subtitle">Gestión de accesos y contraseñas guardadas en la Fiscalía.</p>
+                        </div>
+                        <button onclick="openCredentialModal()" class="btn btn-primary">
+                            <i class="fa-solid fa-plus"></i> Nueva Credencial
+                        </button>
+                    </div>
+
+                    <!-- Search and Filters Bar -->
+                    <div class="search-bar-container glass-panel">
+                        <div class="search-input-wrapper">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="vault-search-input" placeholder="Buscar por nombre, usuario, URL...">
+                        </div>
+                    </div>
+
+                    <!-- Credentials Grid/List -->
+                    <div id="credentials-grid" class="credentials-grid">
+                        <!-- Javascript will populate this -->
+                    </div>
+                </section>
+
+
+                <!-- 2. SECTION: FAVORITES -->
+                <section id="favorites-section" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2>Favoritos</h2>
+                            <p class="section-subtitle">Accesos destacados y de uso frecuente.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="favorites-grid" class="credentials-grid">
+                        <!-- Javascript will populate this -->
+                    </div>
+                </section>
+
+
+                <!-- 3. SECTION: ADMIN USERS -->
+                <section id="admin-users-section" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2>Gestión de Personal</h2>
+                            <p class="section-subtitle">Administre funcionarios, envíe invitaciones individuales o realice altas masivas para la Fiscalía.</p>
+                        </div>
+                    </div>
+
+                    <!-- Navigation tabs -->
+                    <div class="admin-tabs-nav">
+                        <button class="admin-tab-btn active" id="admin-tab-users-btn" onclick="selectAdminTab('users')">
+                            <i class="fa-solid fa-users"></i> Usuarios Activos
+                        </button>
+                        <button class="admin-tab-btn" id="admin-tab-invites-btn" onclick="selectAdminTab('invites')">
+                            <i class="fa-solid fa-user-plus"></i> Invitaciones & Alta
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Active Users -->
+                    <div id="admin-tab-users-content" class="admin-tab-content active">
+                        <div class="search-container glass-panel">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="admin-search-users" placeholder="Buscar por nombres, CI, apellido paterno, materno o correo..." oninput="filterActiveUsersTable()">
+                        </div>
+
+                        <div class="table-container glass-panel">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Funcionario</th>
+                                        <th>Nro CI</th>
+                                        <th>Seguridad & Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-table-body">
+                                    <!-- Javascript will populate this -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Active Users Pagination Panel -->
+                        <div class="pagination-panel" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 0.5rem 1rem; background: rgba(0,0,0,0.02); border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary);">
+                                <span>Mostrar</span>
+                                <select id="admin-users-pagesize-select" onchange="changeUsersPageSize(this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); cursor: pointer;">
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="30">30</option>
+                                    <option value="40">40</option>
+                                    <option value="50">50</option>
+                                </select>
+                                <span>por página</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button id="btn-users-prev" class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; border-radius: 4px;" onclick="prevUsersPage()">Anterior</button>
+                                <span id="users-page-info" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Página 1 de 1</span>
+                                <button id="btn-users-next" class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; border-radius: 4px;" onclick="nextUsersPage()">Siguiente</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content: Invitations and Alta -->
+                    <div id="admin-tab-invites-content" class="admin-tab-content">
+                        <div class="invite-grid">
+                            <!-- Left: Single Invitation Form -->
+                            <div class="settings-card glass-panel" style="padding: 1.5rem;">
+                                <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-envelope-open-text text-primary"></i> Invitar Funcionario</h3>
+                                <form id="admin-invite-form" style="display: flex; flex-direction: column; gap: 0.8rem; width: 100%;">
+                                    <div class="input-group">
+                                        <label for="admin-invite-nombres"><i class="fa-solid fa-user"></i> Nombres</label>
+                                        <input type="text" id="admin-invite-nombres" required placeholder="Ej. Juan Carlos">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="admin-invite-paterno"><i class="fa-solid fa-user"></i> Apellido Paterno (Opcional)</label>
+                                        <input type="text" id="admin-invite-paterno" placeholder="Ej. Pérez">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="admin-invite-materno"><i class="fa-solid fa-user"></i> Apellido Materno</label>
+                                        <input type="text" id="admin-invite-materno" required placeholder="Ej. Gomez">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="admin-invite-ci"><i class="fa-solid fa-id-card"></i> Nro CI</label>
+                                        <input type="text" id="admin-invite-ci" required placeholder="Ej. 1234567">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="admin-invite-email"><i class="fa-solid fa-envelope"></i> Correo Electrónico Institucional</label>
+                                        <input type="email" id="admin-invite-email" required placeholder="funcionario@fiscalia.gob.bo">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" style="align-self: flex-start; min-width: 140px; margin-top: 0.5rem;">
+                                        Enviar Invitación <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Right: Bulk Upload Area -->
+                            <div class="settings-card glass-panel" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                                <h3><i class="fa-solid fa-file-excel text-success"></i> Importación Masiva</h3>
+                                
+                                <div class="drop-zone" id="excel-drop-zone" onclick="triggerExcelFileInput()" style="padding: 1.5rem 1rem;">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <div class="drop-zone-title">Arrastre o seleccione planilla</div>
+                                    <div class="drop-zone-desc">Formatos: .csv, .xlsx</div>
+                                    <input type="file" id="excel-file-input" class="hidden" accept=".xlsx,.csv" onchange="handleExcelFileSelect(event)">
+                                    <div id="selected-file-badge" class="selected-file-badge hidden">
+                                        <i class="fa-solid fa-file-csv"></i> <span id="selected-file-name">archivo.csv</span>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <button class="btn btn-success" id="btn-upload-bulk" onclick="uploadBulkFile()" disabled style="flex: 1;">
+                                        Procesar Importación <i class="fa-solid fa-upload"></i>
+                                    </button>
+                                </div>
+
+                                <a href="#" onclick="downloadExcelTemplate(event)" class="template-link">
+                                    <i class="fa-solid fa-download"></i> Descargar Planilla de Ejemplo (.csv)
+                                </a>
+
+                                <!-- Bulk upload result stats panel -->
+                                <div id="bulk-result-card" class="bulk-result-card hidden">
+                                    <div class="bulk-result-header" id="bulk-result-header-text">
+                                        <i class="fa-solid fa-circle-check text-success"></i> Carga Masiva Finalizada
+                                    </div>
+                                    <div class="bulk-stats-grid">
+                                        <div class="bulk-stat-item">
+                                            <div class="bulk-stat-val success" id="bulk-stat-success">0</div>
+                                            <div class="bulk-stat-lbl">Éxito</div>
+                                        </div>
+                                        <div class="bulk-stat-item">
+                                            <div class="bulk-stat-val skipped" id="bulk-stat-skipped">0</div>
+                                            <div class="bulk-stat-lbl">Omitidos</div>
+                                        </div>
+                                        <div class="bulk-stat-item">
+                                            <div class="bulk-stat-val error" id="bulk-stat-errors">0</div>
+                                            <div class="bulk-stat-lbl">Errores</div>
+                                        </div>
+                                    </div>
+                                    <ul id="bulk-errors-list" class="bulk-errors-list hidden">
+                                        <!-- Error lines populated dynamically -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Invitations List Table -->
+                        <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem;">Invitaciones Generadas</h3>
+                        <div class="table-container glass-panel">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Funcionario</th>
+                                        <th>Nro CI</th>
+                                        <th>Estado & Envío</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-invites-table-body">
+                                    <!-- Javascript will populate this -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Invitations Pagination Panel -->
+                        <div class="pagination-panel" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 0.5rem 1rem; background: rgba(0,0,0,0.02); border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary);">
+                                <span>Mostrar</span>
+                                <select id="admin-invites-pagesize-select" onchange="changeInvitesPageSize(this.value)" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); cursor: pointer;">
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="30">30</option>
+                                    <option value="40">40</option>
+                                    <option value="50">50</option>
+                                </select>
+                                <span>por página</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button id="btn-invites-prev" class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; border-radius: 4px;" onclick="prevInvitesPage()">Anterior</button>
+                                <span id="invites-page-info" style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Página 1 de 1</span>
+                                <button id="btn-invites-next" class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; border-radius: 4px;" onclick="nextInvitesPage()">Siguiente</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- 5. SECTION: ADMIN LOGS -->
+                <section id="admin-logs-section" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2>Historial de Auditoría</h2>
+                            <p class="section-subtitle">Auditoría completa del log de cambios de contraseñas y operaciones de seguridad.</p>
+                        </div>
+                        <button onclick="loadAdminLogs()" class="btn btn-outline">
+                            <i class="fa-solid fa-arrows-rotate"></i> Actualizar Logs
+                        </button>
+                    </div>
+
+                    <div class="table-container glass-panel">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Acción</th>
+                                    <th>Detalles</th>
+                                    <th>Fecha y Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-logs-table-body">
+                                <!-- Javascript will populate this -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+
+                <!-- 6. SECTION: SETTINGS -->
+                <section id="settings-section" class="content-section">
+                    <div class="section-header">
+                        <div>
+                            <h2>Configuración de Cuenta</h2>
+                            <p class="section-subtitle">Administre la seguridad de su cuenta y contraseña maestra.</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        
+                        <!-- Card: Google 2FA Setup -->
+                        <div class="settings-card glass-panel">
+                            <h3><i class="fa-solid fa-shield-halved text-primary"></i> Autenticación de Doble Factor (2FA)</h3>
+                            <p class="card-desc">Incremente la seguridad de su bóveda vinculándola a Google Authenticator. Si cambia de celular, desvincule el 2FA desde aquí.</p>
+                            
+                            <div id="2fa-status-inactive" class="2fa-control-box">
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom: 10px;">
+                                    <div class="badge badge-danger" style="margin:0;"><i class="fa-solid fa-circle-xmark"></i> Inactivo</div>
+                                    <span style="font-size:12px; color:var(--text-muted); font-weight:500;">Requiere Google Authenticator</span>
+                                </div>
+                                <p class="box-details mt-2">Al activar 2FA, se le solicitará un código de 6 dígitos de la aplicación Google Authenticator cada vez que inicie sesión.</p>
+                                <button onclick="start2FASetup()" class="btn btn-primary mt-2">Vincular Google Authenticator</button>
+                            </div>
+
+                            <div id="2fa-setup-wizard" class="2fa-control-box hidden">
+                                <div style="display: flex; align-items: center; gap: 12px; background: rgba(66, 133, 244, 0.08); border: 1.5px solid rgba(66, 133, 244, 0.25); padding: 12px; border-radius: 6px; margin-bottom: 15px; text-align: left;">
+                                    <svg viewBox="0 0 512 512" width="36" height="36" style="flex-shrink:0;">
+                                        <path fill="#1A73E8" d="M440,255.99997v0.00006C440,273.12085,426.12085,287,409.00003,287H302l-46-93.01001l49.6507-85.9951c8.56021-14.82629,27.51834-19.9065,42.34518-11.34724l0.00586,0.0034c14.82776,8.55979,19.90875,27.51928,11.34857,42.34682L309.70001,225h99.30002C426.12085,225,440,238.87917,440,255.99997z"/>
+                                        <path fill="#EA4335" d="M348.00174,415.34897l-0.00586,0.00339c-14.82684,8.55927-33.78497,3.47903-42.34518-11.34723L256,318.01001l-49.65065,85.99509c-8.5602,14.82629-27.51834,19.90652-42.34517,11.34729l-0.00591-0.00342c-14.82777-8.55978-19.90875-27.51929-11.34859-42.34683L202.29999,287L256,285l53.70001,2l49.6503,86.00214C367.91049,387.82968,362.8295,406.78918,348.00174,415.34897z"/>
+                                        <path fill="#FBBC04" d="M256,193.98999L242,232l-39.70001-7l-49.6503-86.00212c-8.56017-14.82755-3.47919-33.78705,11.34859-42.34684l0.00591-0.00341c14.82683-8.55925,33.78497-3.47903,42.34517,11.34726L256,193.98999z"/>
+                                        <path fill="#34A853" d="M248,225l-36,62H102.99997C85.87916,287,72,273.12085,72,256.00003v-0.00006C72,238.87917,85.87916,225,102.99997,225H248z"/>
+                                        <polygon fill="#185DB7" points="309.70001,287 202.29999,287 256,193.98999 "/>
+                                    </svg>
+                                    <p style="font-size: 11px; margin: 0; color: var(--text-secondary); line-height: 1.4;">
+                                        <strong>Escaneo Requerido:</strong> Abra la aplicación <strong>Google Authenticator</strong> en su dispositivo móvil y escanee el código QR a continuación para registrar la cuenta.
+                                    </p>
+                                </div>
+                                <p class="box-instructions">1. Escanee el código QR con Google Authenticator o ingrese la clave secreta:</p>
+                                <div class="qr-code-wrapper mt-2">
+                                    <img id="2fa-qr-code-img" src="" alt="Código QR 2FA">
+                                </div>
+                                <div class="secret-text-box mt-2">
+                                    <span>Clave Secreta:</span>
+                                    <code id="2fa-secret-text">cargando...</code>
+                                </div>
+                                <p class="box-instructions mt-3">2. Ingrese el código generado para validar la activación:</p>
+                                <div class="otp-verification-row">
+                                    <input type="text" id="2fa-verification-code" placeholder="000000" maxlength="6">
+                                    <button onclick="confirm2FA()" class="btn btn-success">Activar 2FA</button>
+                                </div>
+                                <button onclick="cancel2FASetup()" class="btn btn-outline btn-block mt-2">Cancelar</button>
+                            </div>
+
+                            <div id="2fa-status-active" class="2fa-control-box hidden">
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                                    <div class="badge badge-success" style="margin:0;"><i class="fa-solid fa-circle-check"></i> Activo</div>
+                                    <span style="font-size:12px; color:var(--text-muted); font-weight:500;">Protegido con Google Authenticator</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.15); border: 1.5px solid var(--border-color); padding: 12px; border-radius: 6px; margin-bottom: 15px; text-align: left;">
+                                    <svg viewBox="0 0 48 48" width="32" height="32" style="flex-shrink:0;">
+                                        <path fill="#4285F4" d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm0 6c7.73 0 14 6.27 14 14s-6.27 14-14 14-14-6.27-14-14 6.27-14 14-14z"/>
+                                        <path fill="#34A853" d="M24 14c-5.52 0-10 4.48-10 10s4.48 10 10 10c2.31 0 4.43-.79 6.12-2.12l-4.24-4.24c-.53.23-1.12.36-1.88.36-2.21 0-4-1.79-4-4s1.79-4 4-4c1.68 0 3.12 1.03 3.73 2.51l4.58-2.65C30.2 16.59 27.32 14 24 14z"/>
+                                        <path fill="#FBBC05" d="M32.88 27.88c.72-1.12 1.12-2.45 1.12-3.88 0-3.32-2.2-6.13-5.22-7.05l-2.65 4.58c.95.4 1.68 1.22 1.87 2.22l4.88 4.13z"/>
+                                        <path fill="#EA4335" d="M24 28c-.76 0-1.35-.13-1.88-.36l-4.24 4.24C19.57 33.21 21.69 34 24 34c3.32 0 6.2-2.59 6.87-5.88l-4.58-2.65c-.61 1.48-2.05 2.51-3.73 2.51z"/>
+                                    </svg>
+                                    <p style="font-size: 11px; margin: 0; color: var(--text-secondary); line-height: 1.4;">
+                                        <strong>Desvinculación Segura:</strong> Para remover o transferir su cuenta de <strong>Google Authenticator</strong>, confirme su contraseña maestra abajo.
+                                    </p>
+                                </div>
+                                <div class="input-group mt-3">
+                                    <label for="2fa-disable-password">Confirme su contraseña maestra para desvincular el 2FA:</label>
+                                    <input type="password" id="2fa-disable-password" placeholder="Contraseña Maestra">
+                                </div>
+                                <button onclick="disable2FA()" class="btn btn-danger btn-block mt-2">Desvincular 2FA (Reset QR)</button>
+                            </div>
+                        </div>
+
+                        <!-- Card: Change Master Password -->
+                        <div class="settings-card glass-panel">
+                            <h3><i class="fa-solid fa-key text-warning"></i> Cambiar Contraseña Maestra</h3>
+                            <p class="card-desc">Para actualizar la contraseña de acceso a su bóveda, debe ingresar su contraseña maestra actual.</p>
+                            
+                            <form id="change-password-form">
+                                <div class="input-group">
+                                    <label for="settings-old-password">Contraseña Maestra Actual</label>
+                                    <input type="password" id="settings-old-password" required placeholder="Contraseña actual">
+                                </div>
+                                <!-- Password Mode Selector Tabs -->
+                                <div class="password-selection-tabs">
+                                    <button type="button" class="tab-btn active" id="tab-custom-settings" onclick="selectPasswordMode('settings', 'custom')">Personalizada</button>
+                                    <button type="button" class="tab-btn" id="tab-suggested-settings" onclick="selectPasswordMode('settings', 'suggested')">Contraseña Sugerida</button>
+                                </div>
+
+                                <!-- Mode: Suggested -->
+                                <div id="suggested-box-settings" class="password-mode-box hidden">
+                                    <label><i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Contraseña Sugerida de Alta Seguridad</label>
+                                    <div class="suggested-preview-box">
+                                        <span class="suggested-pw-text" id="suggested-pw-settings">cargando...</span>
+                                        <button type="button" class="btn-icon-copy" title="Copiar Contraseña" onclick="copySuggestedPassword('settings')">
+                                            <i class="fa-regular fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <p class="suggested-help-text" style="margin-bottom:12px;"><i class="fa-solid fa-circle-info"></i> Copie esta contraseña y guárdela en un lugar seguro.</p>
+                                </div>
+
+                                <!-- Mode: Custom -->
+                                <div id="custom-box-settings" class="password-mode-box">
+                                    <div class="input-group">
+                                        <label for="settings-new-password">Nueva Contraseña Maestra</label>
+                                        <input type="password" id="settings-new-password" placeholder="Mínimo 8 caracteres" minlength="8">
+                                        <div class="strength-meter-container">
+                                            <div class="strength-meter-bar-wrapper">
+                                                <div id="settings-password-strength-bar" class="strength-meter-bar"></div>
+                                            </div>
+                                            <span id="settings-password-strength-text" class="strength-meter-text">Contraseña vacía</span>
+                                        </div>
+                                        <div class="kaspersky-checklist">
+                                            <div class="checklist-item" id="settings-req-length">
+                                                <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Mín. 8 caracteres</span>
+                                            </div>
+                                            <div class="checklist-item" id="settings-req-upper">
+                                                <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Mayúsculas [A-Z]</span>
+                                            </div>
+                                            <div class="checklist-item" id="settings-req-lower">
+                                                <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Minúsculas [a-z]</span>
+                                            </div>
+                                            <div class="checklist-item" id="settings-req-digit">
+                                                <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Números [0-9]</span>
+                                            </div>
+                                            <div class="checklist-item" id="settings-req-special">
+                                                <i class="fa-solid fa-circle-xmark text-danger"></i> <span>Símbolos [!@#]</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="input-group" style="margin-top: 15px;">
+                                        <label for="settings-confirm-password">Confirmar Nueva Contraseña</label>
+                                        <input type="password" id="settings-confirm-password" placeholder="Repita la contraseña" minlength="8">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-warning mt-2">Actualizar Contraseña Maestra</button>
+                            </form>
+                        </div>
+
+                        <!-- Card: Global Inactivity Timeout (Admin Only) -->
+                        <div class="settings-card glass-panel admin-only hidden">
+                            <h3><i class="fa-solid fa-hourglass-half text-danger"></i> Tiempo de Inactividad Global</h3>
+                            <p class="card-desc">Defina el tiempo de inactividad máximo permitido antes de cerrar automáticamente la sesión de todos los usuarios.</p>
+                            
+                            <form id="global-timeout-form">
+                                <div class="input-group">
+                                    <label for="global-idle-timeout-select">Tiempo de Espera Máximo</label>
+                                    <select id="global-idle-timeout-select" class="input-select" style="width: 100%; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 0.6rem; border-radius: 6px;">
+                                        <option value="5">5 minutos</option>
+                                        <option value="10">10 minutos</option>
+                                        <option value="15">15 minutos (Predeterminado)</option>
+                                        <option value="30">30 minutos</option>
+                                        <option value="60">1 hora</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-danger mt-2">Guardar Configuración Global</button>
+                            </form>
+                        </div>
+
+                        <!-- Card: Global SMTP Settings (Admin Only) -->
+                        <div class="settings-card glass-panel admin-only hidden" style="grid-column: span 2;">
+                            <h3><i class="fa-solid fa-paper-plane text-success"></i> Configuración del Servidor de Correo (SMTP)</h3>
+                            <p class="card-desc">Configure las credenciales de correo de la institución para realizar envíos automáticos de invitaciones.</p>
+                            
+                            <form id="global-smtp-form">
+                                <div class="input-row-grid">
+                                    <div class="input-group">
+                                        <label for="smtp-host-input">Servidor SMTP</label>
+                                        <input type="text" id="smtp-host-input" required placeholder="ej. smtp.gmail.com o smtp.fiscalia.gob.bo">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="smtp-port-input">Puerto SMTP</label>
+                                        <input type="number" id="smtp-port-input" required placeholder="ej. 587 o 465">
+                                    </div>
+                                </div>
+                                
+                                <div class="input-row-grid">
+                                    <div class="input-group">
+                                        <label for="smtp-user-input">Usuario (Correo de Conexión)</label>
+                                        <input type="text" id="smtp-user-input" placeholder="ej. operaciones@fiscalia.gob.bo">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="smtp-pass-input">Contraseña de Conexión</label>
+                                        <input type="password" id="smtp-pass-input" placeholder="•••••••• (Dejar vacío para no modificar)">
+                                    </div>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label for="smtp-from-input">Correo Remitente (Remitente Visible)</label>
+                                    <input type="email" id="smtp-from-input" required placeholder="operaciones@fiscalia.gob.bo">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success mt-2">Guardar Configuración de Correo</button>
+                            </form>
+                        </div>
+
+                        <!-- Card: Self Account Deletion -->
+                        <div class="settings-card glass-panel border-danger">
+                            <h3 class="text-danger"><i class="fa-solid fa-user-minus"></i> Dar de Baja Cuenta</h3>
+                            <p class="card-desc">Elimine permanentemente su cuenta y todos sus registros de contraseñas guardadas de la base de datos de la Fiscalía.</p>
+                            
+                            <div class="badge badge-danger mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Acción Irreversible</div>
+                            
+                            <div class="input-group mt-2">
+                                <label for="delete-account-password">Confirme su Contraseña Maestra para continuar:</label>
+                                <input type="password" id="delete-account-password" placeholder="Contraseña Maestra">
+                            </div>
+                            <button onclick="deleteOwnAccount()" class="btn btn-danger btn-block mt-2">
+                                Eliminar Mi Cuenta Definitivamente
+                            </button>
+                        </div>
+
+                    </div>
+                </section>
+
+            </main>
+        </section>
+
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL: ADD / EDIT CREDENTIAL -->
+    <!-- ========================================== -->
+    <div id="credential-modal" class="modal-backdrop hidden">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <h3 id="modal-title">Nueva Credencial</h3>
+                <button onclick="closeCredentialModal()" class="modal-close-btn">&times;</button>
+            </div>
+            <form id="credential-form">
+                <input type="hidden" id="cred-id">
+                
+                <div class="input-row-grid">
+                    <div class="input-group">
+                        <label for="cred-name">Nombre del Sistema *</label>
+                        <input type="text" id="cred-name" required placeholder="ej. Correo Interno, SIGMA">
+                    </div>
+                    <div class="input-group flex-shrink-0">
+                        <label>Favorito</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="cred-favorite">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="cred-username">Usuario / Correo Electrónico *</label>
+                    <input type="text" id="cred-username" required placeholder="usuario@fiscalia.gob.bo">
+                </div>
+
+                <div class="input-group">
+                    <label for="cred-password">Contraseña *</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="cred-password" required placeholder="Clave de acceso">
+                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('cred-password')">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <!-- Password Generator Trigger -->
+                    <div class="password-generator-row mt-1">
+                        <a href="#" onclick="generatePasswordIntoField(); return false;" class="form-link text-xs">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Generar contraseña segura
+                        </a>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="cred-url">Enlace / URL del Sistema</label>
+                    <input type="url" id="cred-url" placeholder="https://sistema.fiscalia.gob.bo">
+                </div>
+
+                <div class="input-group">
+                    <label for="cred-notes">Notas / Detalles Adicionales</label>
+                    <textarea id="cred-notes" rows="3" placeholder="Información de interés, llaves secundarias, etc."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" onclick="closeCredentialModal()" class="btn btn-outline">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Credencial</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL: ADMIN EDIT USER EMAIL -->
+    <!-- ========================================== -->
+    <div id="admin-email-modal" class="modal-backdrop hidden">
+        <div class="modal-card glass-panel modal-sm">
+            <div class="modal-header">
+                <h3>Editar Correo de Funcionario</h3>
+                <button onclick="closeAdminEmailModal()" class="modal-close-btn">&times;</button>
+            </div>
+            <form id="admin-email-form">
+                <input type="hidden" id="admin-email-userid">
+                <div class="input-group">
+                    <label for="admin-new-email">Nuevo Correo MP (@fiscalia.gob.bo)</label>
+                    <input type="email" id="admin-new-email" required placeholder="funcionario@fiscalia.gob.bo">
+                </div>
+                <div class="modal-footer mt-4">
+                    <button type="button" onclick="closeAdminEmailModal()" class="btn btn-outline">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Actualizar Correo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL: ADMIN TEMP PASSWORD RESULT -->
+    <!-- ========================================== -->
+    <div id="admin-temp-password-modal" class="modal-backdrop hidden">
+        <div class="modal-card glass-panel modal-sm text-center">
+            <div class="modal-header">
+                <h3>Restablecimiento por Ticket</h3>
+                <button onclick="closeAdminTempPasswordModal()" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="fa-icon-accent text-success"><i class="fa-solid fa-lock-open"></i></div>
+                <p class="mb-3">Se ha generado la siguiente contraseña temporal para el funcionario por ticket. Cópiela y entréguesela de forma segura:</p>
+                
+                <div class="temp-password-display-box">
+                    <span id="temp-password-text">TEMP_PASS_123</span>
+                    <button onclick="copyTempPasswordToClipboard()" class="btn btn-icon-copy" title="Copiar al Portapapeles">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+                
+                <p class="text-xs text-muted mt-3"><i class="fa-solid fa-circle-info"></i> El usuario deberá cambiar obligatoriamente esta clave al ingresar.</p>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeAdminTempPasswordModal()" class="btn btn-primary btn-block">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- ========================================== -->
+    <!-- MODAL: EDIT USER ROLE -->
+    <!-- ========================================== -->
+    <div id="edit-role-modal" class="modal-backdrop hidden">
+        <div class="modal-card glass-panel modal-sm">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-gear text-primary"></i> Cambiar Rol de Funcionario</h3>
+                <button onclick="closeEditRoleModal()" class="modal-close-btn">&times;</button>
+            </div>
+            <form id="edit-role-form" onsubmit="saveUserRole(event)">
+                <input type="hidden" id="edit-role-user-id">
+                <div class="modal-body p-4">
+                    <p class="mb-3 text-sm text-secondary">Seleccione el nuevo rol de seguridad para el funcionario en el sistema:</p>
+                    <div class="input-group">
+                        <label for="edit-role-select">Rol de Seguridad</label>
+                        <select id="edit-role-select" class="form-select" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-primary);">
+                            <option value="funcionario">Funcionario (Acceso Bóveda)</option>
+                            <option value="admin">Administrador (Gestión Bóveda + Personal)</option>
+                            <option value="superuser">Superusuario (Gestión Completa + Roles)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeEditRoleModal()" class="btn btn-outline">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Rol</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: REQUEST PASSWORD HINT -->
+    <!-- ========================================== -->
+    <div id="request-hint-modal" class="modal-backdrop hidden">
+        <div class="modal-card glass-panel modal-sm">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-lightbulb text-warning"></i> Obtener Pista</h3>
+                <button onclick="closeRequestHintModal()" class="modal-close-btn">&times;</button>
+            </div>
+            <form id="request-hint-form">
+                <div class="modal-body p-4">
+                    <p class="mb-3 text-sm text-secondary">Ingrese su correo electrónico institucional registrado. Si configuró una pista de contraseña, el sistema se la enviará automáticamente a su casilla de correo.</p>
+                    
+                    <div class="input-group">
+                        <label for="hint-email">Correo MP (@fiscalia.gob.bo)</label>
+                        <input type="email" id="hint-email" required placeholder="funcionario@fiscalia.gob.bo">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeRequestHintModal()" class="btn btn-outline">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Enviar Pista</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SUSPENSION OVERLAY (5 MIN INACTIVITY) -->
+    <!-- ========================================== -->
+    <div id="suspension-overlay" class="modal-backdrop hidden" style="background: rgba(11, 25, 16, 0.95); backdrop-filter: blur(15px); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+        <div class="modal-card glass-panel modal-sm" style="text-align: center; border: 1px solid rgba(11, 94, 40, 0.3); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);">
+            <div style="margin-bottom: 20px; display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(11, 94, 40, 0.1); border: 2px dashed #0b5e28;">
+                <i class="fa-solid fa-lock text-success" style="font-size: 24px; color: #0b5e28;"></i>
+            </div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #1a202c; margin-bottom: 8px;">Bóveda Suspendida</h2>
+            <p style="font-size: 12px; color: #4a5568; margin-bottom: 20px; line-height: 1.5;">Su sesión ha sido bloqueada por inactividad (5 minutos). Introduzca su código de doble factor para continuar.</p>
+            
+            <form id="suspension-unlock-form" onsubmit="unlockSuspension(event)">
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <input type="text" id="suspension-totp-code" class="totp-box" maxlength="6" required placeholder="000000" style="font-size: 24px; text-align: center; letter-spacing: 4px; font-family: monospace; padding: 10px;">
+                </div>
+                <div id="suspension-error" class="text-danger text-sm mb-3 hidden" style="color: #e53e3e; font-weight: 600; font-size: 12px; margin-bottom: 10px;"></div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button type="submit" class="btn btn-primary btn-block" style="padding: 10px; font-size: 13px;">Desbloquear</button>
+                    <button type="button" onclick="logout()" class="btn btn-outline btn-block" style="padding: 8px; font-size: 12px; border-color: rgba(0,0,0,0.1);">Cerrar Sesión</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Javascript File -->
+    <script src="app.js"></script>
+</body>
+</html>

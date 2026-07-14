@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>VaultFiscalia</title>
+    <link rel="stylesheet" href="popup.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="popup-container">
+        
+        <!-- Header -->
+        <header class="popup-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-shield-halved logo-icon"></i>
+                <span class="logo-text">VaultFiscalia</span>
+            </div>
+            <div class="sub-text">Ministerio Público</div>
+        </header>
+        
+        <!-- Screen: Login -->
+        <div id="login-view" class="view active">
+            <h3 class="view-title">Iniciar Sesión</h3>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="login-email"><i class="fa-regular fa-envelope"></i> Correo MP</label>
+                    <input type="email" id="login-email" required placeholder="usuario@fiscalia.gob.bo">
+                </div>
+                <div class="input-group">
+                    <label for="login-password"><i class="fa-solid fa-key"></i> Contraseña Maestra</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+            </form>
+            <p class="extension-notice mt-3">
+                <i class="fa-solid fa-circle-info"></i> Inicie sesión con su cuenta institucional para habilitar la extensión.
+            </p>
+        </div>
+
+        <!-- Screen: 2FA Verification -->
+        <div id="totp-view" class="view">
+            <h3 class="view-title">Doble Factor</h3>
+            <p class="view-desc">Ingrese el código de su app Google Authenticator:</p>
+            <form id="totp-form">
+                <div class="input-group">
+                    <input type="text" id="totp-code" maxlength="6" placeholder="000000" required class="totp-box">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Verificar</button>
+                <button type="button" id="totp-cancel" class="btn btn-outline btn-block mt-2">Cancelar</button>
+            </form>
+        <!-- Screen: 2FA Setup -->
+        <div id="totp-setup-view" class="view">
+            <h3 class="view-title">Configurar Doble Factor</h3>
+            <p class="view-desc">Escanee el QR desde la app Google Authenticator:</p>
+            <div style="background:#fff; padding:5px; width:130px; height:130px; margin:0 auto 10px; border-radius:4px; display:flex; align-items:center; justify-content:center;">
+                <img id="setup-qr-img" src="" style="width:100%; height:100%;">
+            </div>
+            <div style="text-align:center; font-size:10px; color:var(--text-muted); margin-bottom:10px;">
+                Clave: <code id="setup-secret-txt" style="font-family:monospace; color:var(--color-primary);"></code>
+            </div>
+            <form id="totp-setup-form">
+                <div class="input-group">
+                    <input type="text" id="setup-code" maxlength="6" placeholder="000000" required class="totp-box">
+                </div>
+                <button type="submit" class="btn btn-success btn-block">Activar e Ingresar</button>
+                <button type="button" id="totp-setup-cancel" class="btn btn-outline btn-block mt-2">Cancelar</button>
+            </form>
+        </div>
+
+        <!-- Screen: Save Credential / Mis Contraseñas -->
+        <div id="save-view" class="view">
+            <div class="user-badge">
+                <i class="fa-solid fa-user-tie"></i> <span id="user-email-display">usuario@fiscalia.gob.bo</span>
+            </div>
+            
+            <!-- Tabs Switcher -->
+            <div class="ext-tabs" style="display: flex; gap: 4px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px; padding-bottom: 4px;">
+                <button type="button" class="ext-tab-btn active" id="ext-tab-save" style="flex: 1; padding: 6px; border: none; background: transparent; color: var(--text-secondary); font-size: 11px; font-weight: 600; cursor: pointer; border-radius: var(--radius); outline: none;">Guardar</button>
+                <button type="button" class="ext-tab-btn" id="ext-tab-pull" style="flex: 1; padding: 6px; border: none; background: transparent; color: var(--text-secondary); font-size: 11px; font-weight: 600; cursor: pointer; border-radius: var(--radius); outline: none;">Mis Claves</button>
+            </div>
+            
+            <!-- Tab 1: Save Form -->
+            <div id="ext-tab-save-content" class="tab-content">
+                <form id="save-form">
+                    <div class="input-group">
+                        <label for="save-name">Nombre del Sitio</label>
+                        <input type="text" id="save-name" required placeholder="ej. Gmail, Correo">
+                    </div>
+                    <div class="input-group">
+                        <label for="save-username">Usuario / Correo</label>
+                        <input type="text" id="save-username" required placeholder="Nombre de usuario">
+                    </div>
+                    <div class="input-group">
+                        <label for="save-password">Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="save-password" required placeholder="Clave">
+                            <button type="button" id="gen-password-btn" title="Generar contraseña segura">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="save-url">Dirección URL</label>
+                        <input type="url" id="save-url" required placeholder="https://..." readonly class="readonly-input">
+                    </div>
+                    
+                    <div class="action-buttons-row">
+                        <button type="button" id="logout-btn" class="btn btn-outline">Cerrar</button>
+                        <button type="submit" class="btn btn-success">Guardar</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Tab 2: Pull list -->
+            <div id="ext-tab-pull-content" class="tab-content" style="display: none;">
+                <div class="input-group" style="margin-bottom: 8px;">
+                    <input type="text" id="ext-search-input" placeholder="Buscar credencial por nombre o usuario...">
+                </div>
+                <div id="ext-search-results" style="max-height: 185px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+                    <!-- Populated dynamically -->
+                </div>
+                <div class="action-buttons-row" style="margin-top: 10px;">
+                    <button type="button" id="logout-btn-pull" class="btn btn-outline btn-block">Cerrar Bóveda</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications in Extension -->
+        <div id="toast" class="toast hidden"></div>
+        
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
